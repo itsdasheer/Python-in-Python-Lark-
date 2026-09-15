@@ -1,0 +1,90 @@
+?start: ins+
+
+?ins: defunc | callfunc | def_mod_var | defclass | if | match | import | while | break | continue | for_in | id_from_id | try_except | raise | return | yield
+
+defunc: "def" ID "(" args ")"  ":" (IDT ins)+
+callfunc: ID "(" args ")"
+try_except: "try" ":" (IDT ins)+ except
+except: "except" cond ":" (IDT ins)+
+raise: "raise" cond
+return: "return" cond
+yield: "yield" cond
+
+def_mod_var: ID set_to_index? OPV cond
+OPV: /([+-\/\*%]|\/\/|\*\*|<<|>>)?=/
+
+defclass: "class" ID fatherclass? ":" (IDT ins)+
+fatherclass: "(" (ID ("," ID)*)? ")"
+while: "while" cond ":" (IDT ins)+
+break: "break"
+continue: "continue"
+for_in: "for" ID ("," ID)* "in" cond ":" (IDT ins)+
+id_from_id: ID ("." (ID | callfunc))+
+
+IDT: /\n    /
+
+import: ("from" ID)? "import" (ID ("," ID)* ("as" ID ("," ID)*)?) | STAR
+
+STAR: "*"
+
+if: "if" cond ":" (IDT ins)+ (elif | else)?
+elif: "elif" cond ":" (IDT ins)+ (elif | else)?
+else: "else" ":" (IDT ins)+
+
+?cond: bitwise_or (BCOND bitwise_or)*
+BCOND: ">" | "<" | /[=!><]=/
+
+?bitwise_or: bitwise_xor ("|" bitwise_xor)*
+?bitwise_xor: bitwise_and ("^" bitwise_and)*
+?bitwise_and: shift ("&" shift)*
+
+match: "match" ID ":" (IDT case)+
+case: "case" (cond | _DEFAULT) ":" (IDT ins)+
+_DEFAULT: /_/
+
+args: cond? ("," cond)*
+
+?shift: expr (OPS expr)*
+OPS: "<<" | ">>"
+
+?expr: term (OPL term)*
+OPL: "+" | "-"
+
+?term: pow (OPH pow)*
+OPH: "*" | "/" | "%" | "//"
+
+?pow: indexation (OPP indexation)*
+OPP: "**"
+
+?indexation: atom ("[" cond "]")*
+set_to_index: ("[" cond "]")+
+
+?atom: any | callfunc | ID | "(" cond ")" | id_from_id | bitwise_not
+bitwise_not: "~" cond
+
+?any: STR | INT | FLOAT | BOOL | NONE | list | dict | set | tuple
+ID: /[_a-zA-Z][_a-zA-Z0-9]*/
+list: "[" args "]"
+dict: ("{" ((IDT kv)? ("," IDT kv)* ","?) "}") | ("{" kv? ("," kv)* ","? "}")
+tuple: ("(" cond ("," cond)+ ")") | "(" cond "," ")"
+set: "{" cond ("," cond)* "}"
+
+kv: (STR | callfunc | ID ) ":" cond
+
+STR: /[fFrR]?[fFrR]?("([^"\\]|\\(.|"))*")|('([^'\\]|\\(.|'))*')/
+INT: /-?\d+/
+FLOAT: INT /\.\d+/
+BOOL: /True|False/
+NONE: /None/
+
+WS: /\s+/
+CMT: /#.*/
+%ignore WS
+%ignore CMT
+
+# Hello everyone! I'm the creator, you can call me ItsDasheer. I'm from South America, Venezuela. I made this .lark file. What's it about? Python syntax! I fixed several small or annoying errors while I was creating the file. The file supports classes, OOP, functions, and more! Enjoy ;)
+
+# It is very likely that this file will not be updated regularly; creating them is tedious, so please be patient and show your support ^v^
+
+# Thanks you so much for read this
+# Version 1
